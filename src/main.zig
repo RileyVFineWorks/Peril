@@ -24,7 +24,7 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var map = try Map.init(allocator, 10, 10);
+    var map = try Map.init(allocator, 100, 100);
     defer map.deinit(allocator);
 
     map.set(0, 0, .wall);
@@ -34,7 +34,12 @@ pub fn main() !void {
     map.set(0, 2, .wall);
 
     while (!ray.windowShouldClose()) {
+        const old_position = camera.position;
         ray.updateCamera(&camera, .camera_first_person);
+
+        if (map.isWall(camera.position.x, camera.position.z)) {
+            camera.position = old_position;
+        }
 
         ray.beginDrawing();
         defer ray.endDrawing();
@@ -44,7 +49,7 @@ pub fn main() !void {
         ray.beginMode3D(camera);
         {
             map.render();
-            ray.drawGrid(10, 1.0);
+            ray.drawGrid(100, 1.0);
         }
         ray.endMode3D();
 

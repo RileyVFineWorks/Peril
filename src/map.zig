@@ -12,6 +12,15 @@ pub const Map = struct {
     height: usize,
     data: []MapCell,
 
+    pub fn isWall(self: Map, x: f32, z: f32) bool {
+        const mapX = @as(isize, @intFromFloat(@floor(x / 2.0)));
+        const mapZ = @as(isize, @intFromFloat(@floor(z / 2.0)));
+        if (mapX >= self.width or mapZ >= self.height or mapX < 0 or mapZ < 0) {
+            return true; // treat out-of-bounds as walls
+        }
+        return self.get(mapX, mapZ) == .wall;
+    }
+
     pub fn init(allocator: std.mem.Allocator, width: usize, height: usize) !Map {
         const data = try allocator.alloc(MapCell, width * height);
         @memset(data, .empty);
@@ -23,11 +32,11 @@ pub const Map = struct {
         allocator.free(self.data);
     }
 
-    pub fn get(self: Map, x: usize, y: usize) MapCell {
+    pub fn get(self: Map, x: isize, y: isize) MapCell {
         return self.data[y * self.width + x];
     }
 
-    pub fn set(self: *Map, x: usize, y: usize, value: MapCell) void {
+    pub fn set(self: *Map, x: isize, y: isize, value: MapCell) void {
         self.data[y * self.width + x] = value;
     }
 
