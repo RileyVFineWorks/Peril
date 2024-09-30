@@ -13,8 +13,8 @@ pub const Map = struct {
     data: []MapCell,
 
     pub fn isWall(self: Map, x: f32, z: f32) bool {
-        const mapX = @as(isize, @intFromFloat(@floor(x / 2.0)));
-        const mapZ = @as(isize, @intFromFloat(@floor(z / 2.0)));
+        const mapX = @as(usize, @intFromFloat(@floor(x / 2.0)));
+        const mapZ = @as(usize, @intFromFloat(@floor(z / 2.0)));
         if (mapX >= self.width or mapZ >= self.height or mapX < 0 or mapZ < 0) {
             return true; // treat out-of-bounds as walls
         }
@@ -32,11 +32,11 @@ pub const Map = struct {
         allocator.free(self.data);
     }
 
-    pub fn get(self: Map, x: isize, y: isize) MapCell {
+    pub fn get(self: Map, x: usize, y: usize) MapCell {
         return self.data[y * self.width + x];
     }
 
-    pub fn set(self: *Map, x: isize, y: isize, value: MapCell) void {
+    pub fn set(self: *Map, x: usize, y: usize, value: MapCell) void {
         self.data[y * self.width + x] = value;
     }
 
