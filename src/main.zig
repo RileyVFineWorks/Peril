@@ -34,11 +34,18 @@ pub fn main() !void {
     map.set(0, 2, .wall);
 
     while (!ray.windowShouldClose()) {
+        const PLAYER_RADIUS = 0.3;
         const old_position = camera.position;
         ray.updateCamera(&camera, .camera_first_person);
 
-        if (map.isWall(camera.position.x, camera.position.z)) {
-            camera.position = old_position;
+        if (map.checkCollision(camera.position.x, camera.position.z, PLAYER_RADIUS)) {
+            if (!map.checkCollision(old_position.x, camera.position.z, PLAYER_RADIUS)) {
+                camera.position.x = old_position.x;
+            } else if (!map.checkCollision(camera.position.x, old_position.z, PLAYER_RADIUS)) {
+                camera.position.z = old_position.z;
+            } else {
+                camera.position = old_position;
+            }
         }
 
         ray.beginDrawing();

@@ -11,25 +11,53 @@ pub const Map = struct {
     width: usize,
     height: usize,
     data: []MapCell,
+    wall_texture: ray.Texture2D,
 
     pub fn isWall(self: Map, x: f32, z: f32) bool {
-        const mapX = @as(usize, @intFromFloat(@floor(x / 2.0)));
-        const mapZ = @as(usize, @intFromFloat(@floor(z / 2.0)));
-        if (mapX >= self.width or mapZ >= self.height or mapX < 0 or mapZ < 0) {
-            return true; // treat out-of-bounds as walls
+        const mapX = @as(i32, @intFromFloat(@floor(x / 2.0)));
+        const mapZ = @as(i32, @intFromFloat(@floor(z / 2.0)));
+
+        if (mapX < 0 or mapX >= @as(i32, @intCast(self.width)) or
+            mapZ < 0 or mapZ >= @as(i32, @intCast(self.height)))
+        {
+            return false;
         }
-        return self.get(mapX, mapZ) == .wall;
+
+        return self.get(@intCast(mapX), @intCast(mapZ)) == .wall;
+    }
+
+    pub fn checkCollision(self: Map, x: f32, z: f32, radius: f32) bool {
+        const checkPoints = [_][2]f32{
+            .{ x + radius, z },
+            .{ x - radius, z },
+            .{ x, z + radius },
+            .{ x, z - radius },
+            .{ x + radius * 0.7, z + radius * 0.7 },
+            .{ x + radius * 0.7, z - radius * 0.7 },
+            .{ x - radius * 0.7, z + radius * 0.7 },
+            .{ x - radius * 0.7, z - radius * 0.7 },
+        };
+
+        for (checkPoints) |point| {
+            if (self.isWall(point[0], point[1])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     pub fn init(allocator: std.mem.Allocator, width: usize, height: usize) !Map {
         const data = try allocator.alloc(MapCell, width * height);
         @memset(data, .empty);
-        return Map{ .width = width, .height = height, .data = data };
+        const wall_texture = ray.loadTexture("textures/wall_texture.png");
+        return Map{ .width = width, .height = height, .data = data, .wall_texture = wall_texture };
     }
 
     // release map memory
     pub fn deinit(self: *Map, allocator: std.mem.Allocator) void {
         allocator.free(self.data);
+        ray.unloadTexture(self.wall_texture);
     }
 
     pub fn get(self: Map, x: usize, y: usize) MapCell {
